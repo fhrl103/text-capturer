@@ -183,6 +183,9 @@ import {
   }
 
   function init() {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("service-worker.js");
+    }
     if (!window.fileLoader) return;
     var canvas = document.getElementById("pdf-canvas");
     var els = navElements();

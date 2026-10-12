@@ -8,6 +8,7 @@
 - Commit after each completed step with a clear message.
 - If a requirement is ambiguous, ask me before writing code.
 - Support right-to-left text (Arabic). Use dir="auto" and logical CSS properties
+- Bump the service worker shell cache name (`ekstraksi-teks-shell-v1`, v2, …) on every commit that changes any shell file.
 
 ## Agent skills
 
