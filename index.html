@@ -18,6 +18,16 @@
       <p dir="auto">Berkas terpilih: <span id="file-name" dir="auto"></span></p>
       <img id="preview" alt="" hidden>
       <canvas id="pdf-canvas" hidden></canvas>
+      <nav id="pdf-nav" hidden dir="auto" aria-label="Navigasi halaman">
+        <button type="button" id="prev-page">Sebelumnya</button>
+        <span id="page-indicator" dir="auto"></span>
+        <button type="button" id="next-page">Berikutnya</button>
+        <form id="jump-form">
+          <label for="jump-input">Ke halaman</label>
+          <input type="number" id="jump-input" min="1" inputmode="numeric">
+          <button type="submit" id="jump-go">Buka</button>
+        </form>
+      </nav>
       <label for="file-input">Pilih berkas lain</label>
     </section>
   </main>

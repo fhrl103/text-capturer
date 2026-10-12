@@ -75,3 +75,50 @@ label[for="file-input"] {
 #pdf-canvas[hidden] {
   display: none;
 }
+
+#pdf-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-block-start: 1rem;
+}
+
+#pdf-nav[hidden] {
+  display: none;
+}
+
+#prev-page,
+#next-page,
+#jump-go {
+  min-inline-size: 2.75rem;
+  min-block-size: 2.75rem;
+  padding-inline: 1rem;
+  padding-block: 0.5rem;
+  cursor: pointer;
+}
+
+#prev-page:disabled,
+#next-page:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+#page-indicator {
+  min-inline-size: 4rem;
+  text-align: center;
+}
+
+#jump-form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-inline-start: auto;
+}
+
+#jump-input {
+  inline-size: 4rem;
+  min-block-size: 2.75rem;
+  padding-inline: 0.5rem;
+  padding-block: 0.25rem;
+}
