@@ -10,6 +10,12 @@ import {
   "use strict";
 
   var currentObjectURL = null;
+  var pickedGeneration = 0;
+
+  var REASON_CORRUPT = "berkas rusak atau tidak dapat dibaca";
+  var REASON_ENCRYPTED = "berkas PDF terproteksi kata sandi tidak didukung";
+  var REASON_UNSUPPORTED =
+    "tipe berkas tidak didukung. Pilih berkas PDF atau gambar";
 
   function isImageFile(file) {
     if (file.type && file.type.indexOf("image/") === 0) return true;
@@ -69,7 +75,37 @@ import {
     });
   }
 
+  function hideError() {
+    var box = document.getElementById("error-state");
+    if (!box) return;
+    box.textContent = "";
+    box.hidden = true;
+  }
+
+  function showError(fileName, reason) {
+    hidePreviews(
+      document.getElementById("preview"),
+      document.getElementById("pdf-canvas")
+    );
+    var box = document.getElementById("error-state");
+    if (!box) return;
+    box.textContent = "";
+    box.appendChild(document.createTextNode('Tidak dapat membuka "'));
+    var nameSpan = document.createElement("span");
+    nameSpan.setAttribute("dir", "auto");
+    nameSpan.textContent = fileName;
+    box.appendChild(nameSpan);
+    box.appendChild(document.createTextNode('": ' + reason + "."));
+    box.hidden = false;
+  }
+
   function hidePreviews(preview, canvas) {
+    if (!preview || !canvas) {
+      revokePreview();
+      closeDocument();
+      updateNav();
+      return;
+    }
     revokePreview();
     closeDocument();
     preview.removeAttribute("src");
@@ -93,6 +129,7 @@ import {
   }
 
   function showPdf(file, preview, canvas) {
+    var generation = pickedGeneration;
     revokePreview();
     closeDocument();
     preview.removeAttribute("src");
@@ -102,36 +139,44 @@ import {
     file
       .arrayBuffer()
       .then(function (data) {
+        if (generation !== pickedGeneration) return null;
         return renderFirstPage(data, canvas);
       })
-      .then(function () {
+      .then(function (result) {
+        if (generation !== pickedGeneration || result === null) return;
         var total = getTotalPages();
         canvas.dataset.totalPages = String(total);
         canvas.hidden = false;
         updateNav();
       })
-      .catch(function () {
-        canvas.removeAttribute("data-total-pages");
-        canvas.hidden = true;
-        updateNav();
+      .catch(function (err) {
+        if (generation !== pickedGeneration) return;
+        if (err && err.name === "RenderingCancelledException") return;
+        if (err && err.name === "PasswordException") {
+          showError(file.name, REASON_ENCRYPTED);
+        } else {
+          showError(file.name, REASON_CORRUPT);
+        }
       });
   }
 
   function showFile(file) {
     if (!file) return;
+    pickedGeneration += 1;
     var info = document.getElementById("file-info");
     var name = document.getElementById("file-name");
     var empty = document.getElementById("empty-state");
     var preview = document.getElementById("preview");
     var canvas = document.getElementById("pdf-canvas");
     if (!info || !name || !empty || !preview || !canvas) return;
+    hideError();
     name.textContent = file.name;
     if (isImageFile(file)) {
       showImage(file, preview, canvas);
     } else if (isPdfFile(file)) {
       showPdf(file, preview, canvas);
     } else {
-      hidePreviews(preview, canvas);
+      showError(file.name, REASON_UNSUPPORTED);
     }
     info.hidden = false;
     empty.hidden = true;

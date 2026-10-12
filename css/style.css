@@ -76,6 +76,19 @@ label[for="file-input"] {
   display: none;
 }
 
+#error-state {
+  border: 1px solid currentColor;
+  border-radius: 0.5rem;
+  padding-inline: 1rem;
+  padding-block: 0.75rem;
+  margin-block-start: 1rem;
+  overflow-wrap: anywhere;
+}
+
+#error-state[hidden] {
+  display: none;
+}
+
 #pdf-nav {
   display: flex;
   flex-wrap: wrap;
