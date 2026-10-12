@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 (app shell with file picker and empty state).
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] Picking a valid multi-page PDF displays its first page
 - [ ] The total page count is known to the app after opening

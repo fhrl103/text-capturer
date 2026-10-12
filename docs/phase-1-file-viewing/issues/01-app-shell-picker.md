@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] Launching the app with no file shows an empty state and a visible way to choose a file
 - [ ] Picking a file from disk registers its name in the UI (rendering comes in later tickets)

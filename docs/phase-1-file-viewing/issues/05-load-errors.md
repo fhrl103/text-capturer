@@ -4,7 +4,7 @@
 
 **Blocked by:** 02 (open and display an image file), 03 (open a PDF and render its first page offline).
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] A corrupt or unreadable PDF shows an error with the file name and the reason
 - [ ] An encrypted (password-protected) PDF shows an error stating it is unsupported

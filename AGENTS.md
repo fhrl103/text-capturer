@@ -9,6 +9,7 @@
 - If a requirement is ambiguous, ask me before writing code.
 - Support right-to-left text (Arabic). Use dir="auto" and logical CSS properties
 - Bump the service worker shell cache name (`ekstraksi-teks-shell-v1`, v2, …) on every commit that changes any shell file.
+- Before committing any change to code or docs, show me the output of `git diff --stat` and `git diff` and wait for my approval.
 
 ## Agent skills
 

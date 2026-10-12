@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 (app shell with file picker and empty state).
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] Picking a supported image file displays it on screen
 - [ ] The displayed file name matches the picked file, including non-Latin names

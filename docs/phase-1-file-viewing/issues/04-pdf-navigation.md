@@ -4,7 +4,7 @@
 
 **Blocked by:** 03 (open a PDF and render its first page offline).
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] Previous/next controls move exactly one page and re-render it
 - [ ] A page indicator always shows current page and total (e.g. "3 / 200")

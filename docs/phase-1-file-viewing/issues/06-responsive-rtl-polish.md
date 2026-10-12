@@ -4,7 +4,7 @@
 
 **Blocked by:** 04 (multi-page PDF navigation), 05 (clear errors for unloadable files without leaving the app).
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] Layout adapts from a narrow Android viewport to a wide laptop viewport with no overlapping or unreachable controls
 - [ ] Previous/next and jump controls are tappable on a small touchscreen-size viewport

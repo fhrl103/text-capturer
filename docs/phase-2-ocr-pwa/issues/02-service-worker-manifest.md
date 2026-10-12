@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 (vendor tesseract.js runtime and -lstm core pair).
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [x] With network disconnected, a page refresh loads the app shell, viewer, and navigation exactly as when online
   - Clarification: "exactly as when online" means the empty state after refresh — shell, viewer, and navigation behave the same as a fresh online load. Viewed-file restoration is NOT required and stays forbidden by phase 1 (fresh state every launch).
