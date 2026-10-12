@@ -64,3 +64,14 @@ label[for="file-input"] {
 #preview[hidden] {
   display: none;
 }
+
+#pdf-canvas {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  margin-block-start: 1rem;
+}
+
+#pdf-canvas[hidden] {
+  display: none;
+}
