@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ekstraksi Teks</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main>
+    <h1 dir="auto">Ekstraksi Teks</h1>
+    <section id="empty-state" dir="auto">
+      <p id="empty-message">Belum ada berkas. Pilih berkas PDF atau gambar dari perangkat.</p>
+      <label for="file-input">Pilih berkas</label>
+      <input type="file" id="file-input" accept="application/pdf,image/*">
+    </section>
+    <section id="file-info" hidden>
+      <p dir="auto">Berkas terpilih: <span id="file-name" dir="auto"></span></p>
+      <label for="file-input">Pilih berkas lain</label>
+    </section>
+  </main>
+  <script src="js/fileLoader.js" defer></script>
+  <script src="js/app.js" defer></script>
+</body>
+</html>

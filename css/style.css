@@ -1,0 +1,55 @@
+:root {
+  color-scheme: light dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  line-height: 1.5;
+}
+
+main {
+  max-inline-size: 48rem;
+  margin-inline: auto;
+  padding-inline: 1rem;
+  padding-block: 2rem;
+}
+
+h1 {
+  text-align: start;
+  font-size: 1.5rem;
+  margin-block: 0 1rem;
+}
+
+#empty-state,
+#file-info {
+  border: 1px solid currentColor;
+  border-radius: 0.5rem;
+  padding-inline: 1rem;
+  padding-block: 1.5rem;
+  text-align: start;
+}
+
+label[for="file-input"] {
+  display: inline-block;
+  border: 1px solid currentColor;
+  border-radius: 0.5rem;
+  padding-inline: 1rem;
+  padding-block: 0.5rem;
+  cursor: pointer;
+  margin-block-start: 0.5rem;
+}
+
+#file-input {
+  display: block;
+  margin-block-start: 0.5rem;
+}
+
+#file-name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
