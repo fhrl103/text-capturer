@@ -35,7 +35,9 @@ h1 {
 }
 
 label[for="file-input"] {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 2.75rem;
   border: 1px solid currentColor;
   border-radius: 0.5rem;
   padding-inline: 1rem;
@@ -46,6 +48,7 @@ label[for="file-input"] {
 
 #file-input {
   display: block;
+  max-inline-size: 100%;
   margin-block-start: 0.5rem;
 }
 
@@ -134,4 +137,11 @@ label[for="file-input"] {
   min-block-size: 2.75rem;
   padding-inline: 0.5rem;
   padding-block: 0.25rem;
+}
+
+@media (max-width: 30rem) {
+  #jump-form {
+    margin-inline-start: 0;
+    inline-size: 100%;
+  }
 }
