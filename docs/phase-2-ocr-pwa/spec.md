@@ -36,10 +36,11 @@ The user draws a selection box on the rendered page with mouse or touch drag and
 - Offline: service worker caches app shell + vendored libraries on install; traineddata fetched on first OCR (after consent) and cached then (lazy). Manifest makes the app installable.
 - Vendored files (all licenses verified from source LICENSE files; nothing downloaded yet):
   - `tesseract.js` 7.0.0, Apache-2.0: `dist/tesseract.min.js` (~61 KB), `dist/worker.min.js` (~109 KB).
-  - `tesseract.js-core` 7.0.0, Apache-2.0, default variant: `tesseract-core.wasm.js` (~4.5 MB), `tesseract-core.wasm` (~3.3 MB).
+  - `tesseract.js-core` 7.0.0, Apache-2.0, `-lstm` pair: `tesseract-core-lstm.wasm.js` (~3.7 MB), `tesseract-core-lstm.wasm` (~2.7 MB). Reason: default OEM is LSTM_ONLY, `tessdata_best` models are LSTM-only, and the pair is smaller (~6.4 MB vs ~7.8 MB for the plain pair).
+  - Note: legacy (non-LSTM) models would need the plain pair (`tesseract-core.wasm.js` + `tesseract-core.wasm`); out of scope.
   - `tessdata_best`, Apache-2.0: `ara.traineddata` (~12.0 MB), `eng.traineddata` (~14.7 MB).
   - Apache-2.0 redistribution requires shipping each LICENSE alongside its files.
-  - Open: whether to also vendor the SIMD core pair (~7.8 MB) that tesseract.js auto-selects on capable devices, or default pair only.
+  - Deferred: SIMD core pairs pending device measurement (see ticket 09); default file loading resolves an `-lstm` file on every SIMD tier for this configuration.
 - Phase-1 resolutions carried in: jump rejection stays silent; corrupt images show the corrupt-file reason; the 30rem breakpoint stays; `.agents/` + `skills-lock.json` get committed.
 - No new runtime dependencies beyond the vendored files above. Vanilla HTML, CSS, JavaScript; no framework, no build step.
 

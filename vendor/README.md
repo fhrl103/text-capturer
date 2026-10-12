@@ -15,4 +15,7 @@ Do not commit CDN links; the app must run offline after installation.
 
 ## tesseract.js (OCR)
 
-- TODO: not yet vendored
+- library: tesseract.js (npm package tesseract.js) 7.0.0, Apache-2.0
+- core: tesseract.js-core 7.0.0, Apache-2.0, `-lstm` pair (`tesseract-core-lstm.wasm.js`, `tesseract-core-lstm.wasm`)
+- verification: with default options (OEM LSTM_ONLY, no legacy flags), directory mode resolves an `-lstm` core file on every SIMD tier — verified in tesseract.js 7.0.0 source (`src/createWorker.js`: `lstmOnlyCore` from OEM; `src/worker-script/browser/getCore.js`: `-relaxedsimd-lstm` / `-simd-lstm` / `-lstm` branches).
+- TODO: binaries not yet vendored; SIMD pairs deferred pending device measurement.

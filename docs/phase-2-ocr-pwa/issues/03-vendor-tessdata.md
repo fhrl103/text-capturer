@@ -2,7 +2,7 @@
 
 **What to build:** The two OCR language files every later ticket assumes, placed under `vendor/` with their license recorded.
 
-**Blocked by:** 01 (vendor tesseract.js runtime and default core pair).
+**Blocked by:** 01 (vendor tesseract.js runtime and -lstm core pair).
 
 **Status:** ready-for-agent
 
