@@ -36,7 +36,7 @@ The user draws a selection box on the rendered page with mouse or touch drag and
 - Offline: service worker caches app shell + vendored libraries on install; traineddata fetched on first OCR (after consent) and cached then (lazy). Manifest makes the app installable.
 - Vendored files (all licenses verified from source LICENSE files; nothing downloaded yet):
   - `tesseract.js` 7.0.0, Apache-2.0: `dist/tesseract.min.js` (~61 KB), `dist/worker.min.js` (~109 KB).
-  - `tesseract.js-core` 7.0.0, Apache-2.0, `-lstm` pair: `tesseract-core-lstm.wasm.js` (~3.7 MB), `tesseract-core-lstm.wasm` (~2.7 MB). Reason: default OEM is LSTM_ONLY, `tessdata_best` models are LSTM-only, and the pair is smaller (~6.4 MB vs ~7.8 MB for the plain pair).
+  - `tesseract.js-core` 7.0.0, Apache-2.0, `-lstm` pair: `tesseract-core-lstm.wasm.js` (3896484 bytes, ~3.9 MB), `tesseract-core-lstm.wasm` (2855361 bytes, ~2.9 MB). Reason: default OEM is LSTM_ONLY, `tessdata_best` models are LSTM-only, and the pair is smaller (the earlier ~6.4 MB figure was an estimate; actual total ~6.7 MB).
   - Note: legacy (non-LSTM) models would need the plain pair (`tesseract-core.wasm.js` + `tesseract-core.wasm`); out of scope.
   - `tessdata_best`, Apache-2.0: `ara.traineddata` (~12.0 MB), `eng.traineddata` (~14.7 MB).
   - Apache-2.0 redistribution requires shipping each LICENSE alongside its files.
