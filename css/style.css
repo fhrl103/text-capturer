@@ -53,3 +53,14 @@ label[for="file-input"] {
   font-weight: 600;
   overflow-wrap: anywhere;
 }
+
+#preview {
+  display: block;
+  max-inline-size: 100%;
+  block-size: auto;
+  margin-block-start: 1rem;
+}
+
+#preview[hidden] {
+  display: none;
+}
