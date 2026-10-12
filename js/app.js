@@ -5,12 +5,15 @@ import {
   getTotalPages,
   closeDocument,
 } from "./pdfRenderer.js";
+import { runOcr, shutdownOcr } from "./ocr.js";
 
 (function () {
   "use strict";
 
   var currentObjectURL = null;
   var pickedGeneration = 0;
+  var ocrTimer = null;
+  var OCR_DEBOUNCE_MS = 500;
 
   var REASON_CORRUPT = "berkas rusak atau tidak dapat dibaca";
   var REASON_ENCRYPTED = "berkas PDF terproteksi kata sandi tidak didukung";
@@ -63,6 +66,17 @@ import {
     } else {
       els.nav.hidden = true;
     }
+  }
+
+  function requestOcr(cropCanvas, onProgress, onError) {
+    if (ocrTimer !== null) {
+      clearTimeout(ocrTimer);
+      ocrTimer = null;
+    }
+    ocrTimer = setTimeout(function () {
+      ocrTimer = null;
+      runOcr(cropCanvas, onProgress, onError);
+    }, OCR_DEBOUNCE_MS);
   }
 
   function goToPage(num, canvas) {
@@ -219,8 +233,13 @@ import {
       });
     }
     window.addEventListener("pagehide", function () {
+      if (ocrTimer !== null) {
+        clearTimeout(ocrTimer);
+        ocrTimer = null;
+      }
       revokePreview();
       closeDocument();
+      shutdownOcr();
     });
   }
 
