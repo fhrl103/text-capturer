@@ -69,3 +69,11 @@ An offline-first, dependency-free viewer. The user picks a PDF or image file fro
 - Interview decisions locked: no enforced file-size limit; PDFs up to 200 pages; load failure shows error with name + reason and stays in app; fresh state every launch; laptop + Android from the start; full Unicode file names with `dir="auto"`.
 - The vendored pdf.js files themselves are placed manually under `vendor/` (per `vendor/README.md`) and are not part of Phase 1 tickets; tickets assume the vendored build and worker are present.
 - Source of truth for process: repo `AGENTS.md` plus `docs/agents/*.md`.
+
+## Status
+
+- Tickets 01 to 06 implemented and manually tested. Commits: fc22a29, ba70999, 1019826, 17dd6ca, 3e02fcd, 0ebe394.
+- Known gap: the offline criterion is only partly met. The app does not yet work after a page refresh without a server. Service worker and PWA manifest are deferred to phase 2, together with OCR language data caching.
+- Verified offline behavior: no CDN calls, file selection works without network when the app is served locally.
+- Not in phase 1: validation of rejected jump input messages, corrupt image handling beyond the broken-image icon, and the .agents/ and skills-lock.json decision.
+- Verified offline behavior (local server on laptop, network disconnected, no reload): file selection and viewing work without VM or internet.
