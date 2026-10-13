@@ -2,6 +2,8 @@ import { fitWithin } from "./ocr-fit.js";
 
 var MAX_EDGE = 2000;
 var worker = null;
+var currentRun = null;
+var runId = 0;
 
 function getTesseract() {
   if (typeof window !== "undefined" && window.Tesseract) {
@@ -31,7 +33,23 @@ export async function shutdownOcr() {
   await old.terminate();
 }
 
-export async function runOcr(cropCanvas, onProgress, onError) {
+export function runOcr(cropCanvas, onProgress, onError) {
+  var id = ++runId;
+  var previous = currentRun;
+  shutdownOcr();
+  var run = (async function () {
+    if (previous !== null) {
+      try {
+        await previous;
+      } catch (err) {}
+    }
+    return runInner(id, cropCanvas, onProgress, onError);
+  })();
+  currentRun = run;
+  return run;
+}
+
+async function runInner(id, cropCanvas, onProgress, onError) {
   try {
     var Tesseract = getTesseract();
     await shutdownOcr();
@@ -56,6 +74,9 @@ export async function runOcr(cropCanvas, onProgress, onError) {
     var result = await worker.recognize(downscale(cropCanvas));
     return result && result.data ? result.data.text : "";
   } catch (err) {
+    if (id !== runId) {
+      return "";
+    }
     console.error("ocr: recognition failed", err);
     if (typeof onError === "function") {
       try {

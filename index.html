@@ -18,9 +18,20 @@
     </section>
     <section id="file-info" hidden>
       <p dir="auto">Berkas terpilih: <span id="file-name" dir="auto"></span></p>
-      <img id="preview" alt="" hidden>
-      <canvas id="pdf-canvas" hidden></canvas>
+      <div id="viewer">
+        <img id="preview" alt="" hidden>
+        <canvas id="pdf-canvas" hidden></canvas>
+        <canvas id="select-overlay"></canvas>
+      </div>
+      <button type="button" id="clear-box">Hapus area</button>
+      <button type="button" id="copy-text" hidden disabled>Salin teks</button>
+      <p id="manual-copy" hidden dir="auto"></p>
       <p id="error-state" hidden dir="auto" role="alert"></p>
+      <section id="consent-prompt" hidden dir="auto">
+        <p>Data bahasa (±<span id="consent-size" dir="auto">…</span> MB) belum tersimpan. Unduh sekarang?</p>
+        <button type="button" id="consent-download">Unduh</button>
+        <button type="button" id="consent-cancel">Batal</button>
+      </section>
       <nav id="pdf-nav" hidden dir="auto" aria-label="Navigasi halaman">
         <button type="button" id="prev-page">Sebelumnya</button>
         <span id="page-indicator" dir="auto"></span>

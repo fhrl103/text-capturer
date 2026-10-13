@@ -1,6 +1,6 @@
 "use strict";
 
-var SHELL_CACHE = "ekstraksi-teks-shell-v2";
+var SHELL_CACHE = "ekstraksi-teks-shell-v6";
 var TESSDATA_CACHE = "ekstraksi-teks-tessdata-v1";
 var SHELL_PREFIX = "ekstraksi-teks-shell-";
 var SHELL_PATHS = [
@@ -13,6 +13,7 @@ var SHELL_PATHS = [
   "js/pdfRenderer.js",
   "js/ocr.js",
   "js/ocr-fit.js",
+  "js/selection.js",
   "icons/icon-192.png",
   "icons/icon-512.png",
   "vendor/pdfjs/pdf.min.mjs",

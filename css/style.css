@@ -62,6 +62,7 @@ label[for="file-input"] {
   max-inline-size: 100%;
   block-size: auto;
   margin-block-start: 1rem;
+  touch-action: none;
 }
 
 #preview[hidden] {
@@ -73,6 +74,7 @@ label[for="file-input"] {
   inline-size: 100%;
   block-size: auto;
   margin-block-start: 1rem;
+  touch-action: none;
 }
 
 #pdf-canvas[hidden] {
@@ -90,6 +92,77 @@ label[for="file-input"] {
 
 #error-state[hidden] {
   display: none;
+}
+
+#consent-prompt {
+  border: 1px solid currentColor;
+  border-radius: 0.5rem;
+  padding-inline: 1rem;
+  padding-block: 0.75rem;
+  margin-block-start: 1rem;
+}
+
+#consent-prompt[hidden] {
+  display: none;
+}
+
+#consent-download,
+#consent-cancel {
+  min-inline-size: 2.75rem;
+  min-block-size: 2.75rem;
+  padding-inline: 1rem;
+  padding-block: 0.5rem;
+  cursor: pointer;
+  margin-inline-end: 0.5rem;
+}
+
+#viewer {
+  position: relative;
+}
+
+#select-overlay {
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block-start: 0;
+  touch-action: none;
+}
+
+#clear-box {
+  min-inline-size: 2.75rem;
+  min-block-size: 2.75rem;
+  padding-inline: 1rem;
+  padding-block: 0.5rem;
+  cursor: pointer;
+  margin-block-start: 0.5rem;
+}
+
+#copy-text {
+  min-inline-size: 2.75rem;
+  min-block-size: 2.75rem;
+  padding-inline: 1rem;
+  padding-block: 0.5rem;
+  cursor: pointer;
+  margin-block-start: 0.5rem;
+  margin-inline-start: 0.5rem;
+}
+
+#copy-text:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+#copy-text[hidden],
+#manual-copy[hidden] {
+  display: none;
+}
+
+#manual-copy {
+  border: 1px dashed currentColor;
+  border-radius: 0.5rem;
+  padding-inline: 1rem;
+  padding-block: 0.75rem;
+  margin-block-start: 1rem;
+  overflow-wrap: anywhere;
 }
 
 #pdf-nav {

@@ -29,10 +29,19 @@ export function closeDocument() {
   currentPage = null;
   currentPageNum = 0;
   totalPages = 0;
-  if (currentPdf === null) return Promise.resolve();
   var pdf = currentPdf;
   currentPdf = null;
-  return pdf.destroy();
+  if (pdf === null || typeof pdf.destroy !== "function") {
+    return Promise.resolve();
+  }
+  try {
+    return Promise.resolve(pdf.destroy()).catch(function (err) {
+      console.error("pdf: destroy failed", err);
+    });
+  } catch (err) {
+    console.error("pdf: destroy failed", err);
+    return Promise.resolve();
+  }
 }
 
 export async function openDocument(data) {
