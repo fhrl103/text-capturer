@@ -28,8 +28,8 @@ The user draws a selection box on the rendered page with mouse or touch drag and
 
 - Selection: pointer-drag box drawn over the rendered canvas (mouse + touch via Pointer Events), with move/resize adjust handles. Touch targets for handles follow the 44px rule.
 - OCR input: box crop downscaled so its long edge is at most 2000px before recognition.
-- Auto-run: 500ms debounce measured from the last box change. When the debounce fires, terminate the worker and recreate it for the current box (terminate-and-recreate; no job queue). Rationale: tesseract.js 7.0.0 `recognize()` returns a plain promise with no per-job cancel (verified in `src/createWorker.js`; the graceful in-worker terminate is commented out, `terminate()` kills the worker).
-- Instrumentation: log worker creation time so restart cost can be measured on device.
+- Auto-run: 500ms debounce measured from the last box change. When the debounce fires, reuse an idle worker for the current box instead of recreating it; terminate the worker only to cancel an in-flight run, when the language set changes, or after a recognition error, and recycle it after 20 completed runs. Rationale: tesseract.js 7.0.0 `recognize()` returns a plain promise with no per-job cancel (verified in `src/createWorker.js`; the graceful in-worker terminate is commented out, `terminate()` kills the worker), so `terminate()` stays the cancellation mechanism — but recreating the worker on every run needlessly reloads the core and `ara+eng` language data. No job queue; at most one recognition runs at a time.
+- Instrumentation: log worker creation time and reuse so restart and reuse costs can be measured on device.
 - Languages: `ara+eng` from vendored `tessdata_best` files.
 - First-use consent: when OCR is triggered and language data is not cached, show "Data bahasa (±{size} MB) belum tersimpan. Unduh sekarang?" with Unduh and Batal buttons. `{size}` comes from the actual vendored file sizes, not a hardcoded value. OCR does not run until consent. Box changes while the prompt is open do not trigger OCR. After a successful download the prompt never shows again and the debounce rule applies. A cancelled download leaves state unchanged.
 - Copy: `navigator.clipboard.writeText` first; on unavailability or rejection, fall back to a hidden `dir="auto"` textarea + `document.execCommand("copy")` with its return value checked; if both fail, show the recognized text in a selectable element for manual copy (never `user-select: none` on it).
@@ -49,7 +49,7 @@ The user draws a selection box on the rendered page with mouse or touch drag and
 - What makes a good test: observable behavior (box drawn, OCR auto-runs, copy button appears, clipboard holds the text), not internals.
 - Manual offline checklist per ticket on laptop and 360px Android viewport, including: Arabic + English boxes, box adjust re-runs OCR, cancel during recognition, first-use consent/cancel flows, refresh-without-network, reinstall freshness.
 - Clipboard fallback must be tested from a non-secure origin on a real device (`localhost` counts as secure and would hide the fallback path).
-- Worker restart cost measured from creation-time logs on the 4 GB Android target.
+- Worker creation and reuse costs measured from the logs on the 4 GB Android target.
 - Automated tests: none (consistent with phase 1; no test framework without approval).
 
 ## Out of Scope
@@ -62,5 +62,5 @@ The user draws a selection box on the rendered page with mouse or touch drag and
 
 ## Further Notes
 
-- Interview decisions locked: items 1–5, 7, 9–11 confirmed; item 6 approved as the complete list above; (a) downscale to 2000px; (b) 500ms debounce + terminate-and-recreate with creation-time logging; (c) consent prompt wording with build-time size; (d) clipboard → execCommand → manual-copy fallback chain.
+- Interview decisions locked: items 1–5, 7, 9–11 confirmed; item 6 approved as the complete list above; (a) downscale to 2000px; (b) 500ms debounce + idle-worker reuse with terminate only for cancel, language change, and error, recycled every 20 runs, with creation and reuse logging; (c) consent prompt wording with build-time size; (d) clipboard → execCommand → manual-copy fallback chain.
 - Source of truth for process: repo `AGENTS.md` plus `docs/agents/*.md`.
