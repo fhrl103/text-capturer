@@ -51,12 +51,13 @@ function computeGeometry() {
   };
 }
 
+// Sizes only the canvas backing store; the layout box (and therefore the
+// pointer hit area) is kept full-size by `#select-overlay { inline-size: 100%;
+// block-size: 100% }` in CSS, so a drag can start anywhere on the page.
 function sizeOverlay(g) {
   var dpr = window.devicePixelRatio || 1;
   overlay.width = Math.max(1, Math.round(g.vWidth * dpr));
   overlay.height = Math.max(1, Math.round(g.vHeight * dpr));
-  overlay.style.inlineSize = g.vWidth + "px";
-  overlay.style.blockSize = g.vHeight + "px";
 }
 
 function toBitmap(clientX, clientY, g) {
