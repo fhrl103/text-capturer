@@ -1,6 +1,6 @@
 "use strict";
 
-var SHELL_CACHE = "ekstraksi-teks-shell-v13";
+var SHELL_CACHE = "ekstraksi-teks-shell-v14";
 var TESSDATA_CACHE = "ekstraksi-teks-tessdata-v1";
 var SHELL_PREFIX = "ekstraksi-teks-shell-";
 var SHELL_PATHS = [

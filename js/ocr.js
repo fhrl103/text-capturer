@@ -35,16 +35,8 @@ export async function shutdownOcr() {
 
 export function runOcr(cropCanvas, onProgress, onError) {
   var id = ++runId;
-  var previous = currentRun;
   shutdownOcr();
-  var run = (async function () {
-    if (previous !== null) {
-      try {
-        await previous;
-      } catch (err) {}
-    }
-    return runInner(id, cropCanvas, onProgress, onError);
-  })();
+  var run = runInner(id, cropCanvas, onProgress, onError);
   currentRun = run;
   return run;
 }
@@ -52,13 +44,15 @@ export function runOcr(cropCanvas, onProgress, onError) {
 async function runInner(id, cropCanvas, onProgress, onError) {
   try {
     var Tesseract = getTesseract();
-    await shutdownOcr();
+    shutdownOcr().catch(function (err) {
+      console.error("ocr: terminate failed", err);
+    });
     var startedAt = Date.now();
     var oem =
       Tesseract.OEM && typeof Tesseract.OEM.LSTM_ONLY !== "undefined"
         ? Tesseract.OEM.LSTM_ONLY
         : 1;
-    worker = await Tesseract.createWorker("ara+eng", oem, {
+    var fresh = await Tesseract.createWorker("ara+eng", oem, {
       workerPath: "vendor/tesseract/worker.min.js",
       corePath: "vendor/tesseract/tesseract-core-lstm.wasm.js",
       langPath: "vendor/tessdata/",
@@ -70,6 +64,15 @@ async function runInner(id, cropCanvas, onProgress, onError) {
         }
       },
     });
+    if (id !== runId) {
+      try {
+        fresh.terminate();
+      } catch (err) {
+        console.error("ocr: terminate failed", err);
+      }
+      return "";
+    }
+    worker = fresh;
     console.info("ocr: worker created in " + (Date.now() - startedAt) + " ms");
     var recognizeStartedAt = Date.now();
     var result = await worker.recognize(downscale(cropCanvas));
