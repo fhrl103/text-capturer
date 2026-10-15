@@ -1,5 +1,6 @@
 var HANDLE_HIT = 22;
 var MIN_BOX = 4;
+var COPY_GAP = 8;
 
 var viewer = null;
 var overlay = null;
@@ -8,6 +9,8 @@ var onStableBox = null;
 var box = null;
 var src = null;
 var drag = null;
+var pendingPoint = null;
+var rafId = null;
 
 function refreshSource() {
   src = null;
@@ -31,58 +34,63 @@ function refreshSource() {
   src = { el: el, width: width, height: height };
 }
 
-function viewerBox() {
-  return viewer.getBoundingClientRect();
-}
-
-function sourceRect() {
+// Reads every layout value the drag needs exactly once, so the pointer handlers
+// never interleave getBoundingClientRect with style writes (layout thrash).
+function computeGeometry() {
+  var v = viewer.getBoundingClientRect();
   var r = src.el.getBoundingClientRect();
-  var v = viewerBox();
   return {
-    left: r.left - v.left,
-    top: r.top - v.top,
-    width: r.width,
-    height: r.height,
+    vLeft: v.left,
+    vTop: v.top,
+    vWidth: v.width,
+    vHeight: v.height,
+    sLeft: r.left - v.left,
+    sTop: r.top - v.top,
+    sWidth: r.width,
+    sHeight: r.height,
   };
 }
 
-function toBitmap(clientX, clientY) {
-  var r = sourceRect();
-  return {
-    x: (clientX - viewerBox().left - r.left) * (src.width / r.width),
-    y: (clientY - viewerBox().top - r.top) * (src.height / r.height),
-  };
-}
-
-function fitOverlay() {
-  var v = viewerBox();
+function sizeOverlay(g) {
   var dpr = window.devicePixelRatio || 1;
-  overlay.width = Math.max(1, Math.round(v.width * dpr));
-  overlay.height = Math.max(1, Math.round(v.height * dpr));
-  overlay.style.inlineSize = v.width + "px";
-  overlay.style.blockSize = v.height + "px";
+  overlay.width = Math.max(1, Math.round(g.vWidth * dpr));
+  overlay.height = Math.max(1, Math.round(g.vHeight * dpr));
+  overlay.style.inlineSize = g.vWidth + "px";
+  overlay.style.blockSize = g.vHeight + "px";
 }
 
-function boxDisplay() {
-  var r = sourceRect();
-  var sx = r.width / src.width;
-  var sy = r.height / src.height;
+function toBitmap(clientX, clientY, g) {
   return {
-    x: r.left + box.x * sx,
-    y: r.top + box.y * sy,
+    x: (clientX - g.vLeft - g.sLeft) * (src.width / g.sWidth),
+    y: (clientY - g.vTop - g.sTop) * (src.height / g.sHeight),
+  };
+}
+
+function toDisplay(p, g) {
+  return {
+    x: g.sLeft + (p.x * g.sWidth) / src.width,
+    y: g.sTop + (p.y * g.sHeight) / src.height,
+  };
+}
+
+function boxDisplay(g) {
+  var sx = g.sWidth / src.width;
+  var sy = g.sHeight / src.height;
+  return {
+    x: g.sLeft + box.x * sx,
+    y: g.sTop + box.y * sy,
     w: box.w * sx,
     h: box.h * sy,
   };
 }
 
-function redraw() {
+function redraw(g) {
   var ctx = overlay.getContext("2d");
   var dpr = window.devicePixelRatio || 1;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  var v = viewerBox();
-  ctx.clearRect(0, 0, v.width, v.height);
+  ctx.clearRect(0, 0, g.vWidth, g.vHeight);
   if (!box || !src) return;
-  var d = boxDisplay();
+  var d = boxDisplay(g);
   ctx.lineWidth = 2;
   ctx.strokeStyle = "#0F766E";
   ctx.strokeRect(d.x, d.y, d.w, d.h);
@@ -97,23 +105,20 @@ function redraw() {
     ctx.fillRect(corners[i][0] - 6, corners[i][1] - 6, 12, 12);
     ctx.strokeRect(corners[i][0] - 6, corners[i][1] - 6, 12, 12);
   }
-  placeCopyButton();
+  placeCopyButton(g);
 }
 
-var COPY_GAP = 8;
-
-function placeCopyButton() {
+function placeCopyButton(g) {
   var button = document.getElementById("copy-text");
   if (!button || button.hidden || !box || !src) return;
-  var v = viewerBox();
-  if (v.width < 1 || v.height < 1) return;
-  var d = boxDisplay();
+  if (g.vWidth < 1 || g.vHeight < 1) return;
+  var d = boxDisplay(g);
   var bw = button.offsetWidth;
   var bh = button.offsetHeight;
   if (!bw || !bh) return;
-  var left = Math.min(d.x + d.w, v.width - bw);
+  var left = Math.min(d.x + d.w, g.vWidth - bw);
   var top = d.y + d.h + COPY_GAP;
-  if (top + bh > v.height) {
+  if (top + bh > g.vHeight) {
     top = d.y - bh - COPY_GAP;
   }
   button.style.insetInlineStart = Math.max(0, left) + "px";
@@ -127,17 +132,9 @@ function clampBox() {
   box.h = Math.min(Math.max(box.h, 0), src.height - box.y);
 }
 
-function toDisplay(p) {
-  var r = sourceRect();
-  return {
-    x: r.left + (p.x * r.width) / src.width,
-    y: r.top + (p.y * r.height) / src.height,
-  };
-}
-
-function hitHandle(p) {
-  var d = toDisplay(p);
-  var b = boxDisplay();
+function hitHandle(p, g) {
+  var d = toDisplay(p, g);
+  var b = boxDisplay(g);
   var pts = {
     nw: [b.x, b.y],
     ne: [b.x + b.w, b.y],
@@ -174,34 +171,8 @@ function cropBox() {
   return canvas;
 }
 
-function onPointerDown(event) {
-  refreshSource();
-  if (!src) return;
-  fitOverlay();
-  event.preventDefault();
-  try {
-    overlay.setPointerCapture(event.pointerId);
-  } catch (err) {}
-  var p = toBitmap(event.clientX, event.clientY);
-  if (box) {
-    var handle = hitHandle(p);
-    if (handle) {
-      drag = { mode: "resize", handle: handle, orig: { x: box.x, y: box.y, w: box.w, h: box.h } };
-      return;
-    }
-    if (insideBox(p)) {
-      drag = { mode: "move", dx: p.x - box.x, dy: p.y - box.y };
-      return;
-    }
-  }
-  drag = { mode: "new", sx: p.x, sy: p.y };
-  box = { x: p.x, y: p.y, w: 0, h: 0 };
-}
-
-function onPointerMove(event) {
-  if (!drag || !src) return;
-  event.preventDefault();
-  var p = toBitmap(event.clientX, event.clientY);
+function updateBox(clientX, clientY, g) {
+  var p = toBitmap(clientX, clientY, g);
   if (drag.mode === "new") {
     box = {
       x: Math.min(drag.sx, p.x),
@@ -226,25 +197,104 @@ function onPointerMove(event) {
     box.h = Math.abs(ny2 - ny);
   }
   clampBox();
-  redraw();
 }
 
-function onPointerUp(event) {
+// Draws at most once per animation frame, using the latest pointer position.
+function onFrame() {
+  rafId = null;
+  if (!pendingPoint || !drag || !src) {
+    pendingPoint = null;
+    return;
+  }
+  var p = pendingPoint;
+  pendingPoint = null;
+  var g = computeGeometry();
+  updateBox(p.x, p.y, g);
+  redraw(g);
+}
+
+// Applies any queued pointer position immediately (used on pointerup so the
+// final box and crop match the last pointer event).
+function applyPending() {
+  if (rafId !== null) {
+    cancelAnimationFrame(rafId);
+    rafId = null;
+  }
+  if (!pendingPoint || !drag || !src) {
+    pendingPoint = null;
+    return;
+  }
+  var p = pendingPoint;
+  pendingPoint = null;
+  var g = computeGeometry();
+  updateBox(p.x, p.y, g);
+  redraw(g);
+}
+
+function onPointerDown(event) {
+  refreshSource();
+  if (!src) return;
+  event.preventDefault();
+  try {
+    overlay.setPointerCapture(event.pointerId);
+  } catch (err) {}
+  var g = computeGeometry();
+  sizeOverlay(g);
+  var p = toBitmap(event.clientX, event.clientY, g);
+  if (box) {
+    var handle = hitHandle(p, g);
+    if (handle) {
+      drag = { mode: "resize", handle: handle, orig: { x: box.x, y: box.y, w: box.w, h: box.h } };
+      return;
+    }
+    if (insideBox(p)) {
+      drag = { mode: "move", dx: p.x - box.x, dy: p.y - box.y };
+      return;
+    }
+  }
+  drag = { mode: "new", sx: p.x, sy: p.y };
+  box = { x: p.x, y: p.y, w: 0, h: 0 };
+}
+
+function onPointerMove(event) {
+  if (!drag || !src) return;
+  event.preventDefault();
+  pendingPoint = { x: event.clientX, y: event.clientY };
+  if (rafId === null) {
+    rafId = requestAnimationFrame(onFrame);
+  }
+}
+
+function onPointerUp() {
   if (!drag) return;
+  applyPending();
   drag = null;
   if (!box || box.w < MIN_BOX || box.h < MIN_BOX) {
     clearSelection();
     return;
   }
-  redraw();
   if (typeof onStableBox === "function" && src) {
     onStableBox(cropBox());
   }
 }
 
+function relayout() {
+  if (!box) return;
+  refreshSource();
+  if (!src) return;
+  var g = computeGeometry();
+  sizeOverlay(g);
+  redraw(g);
+}
+
 export function clearSelection() {
   box = null;
   drag = null;
+  pendingPoint = null;
+  if (rafId !== null) {
+    cancelAnimationFrame(rafId);
+    rafId = null;
+  }
   if (overlay) {
     var ctx = overlay.getContext("2d");
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -267,25 +317,14 @@ export function initSelection(options) {
   overlay.addEventListener("pointerup", onPointerUp);
   overlay.addEventListener("pointercancel", function () {
     drag = null;
-  });
-  window.addEventListener("resize", function () {
-    if (box) {
-      refreshSource();
-      if (src) {
-        fitOverlay();
-        redraw();
-      }
+    pendingPoint = null;
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
     }
   });
+  window.addEventListener("resize", relayout);
   if (typeof ResizeObserver !== "undefined") {
-    new ResizeObserver(function () {
-      if (box) {
-        refreshSource();
-        if (src) {
-          fitOverlay();
-          redraw();
-        }
-      }
-    }).observe(viewer);
+    new ResizeObserver(relayout).observe(viewer);
   }
 }
