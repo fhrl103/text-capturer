@@ -71,7 +71,9 @@ async function runInner(id, cropCanvas, onProgress, onError) {
       },
     });
     console.info("ocr: worker created in " + (Date.now() - startedAt) + " ms");
+    var recognizeStartedAt = Date.now();
     var result = await worker.recognize(downscale(cropCanvas));
+    console.info("ocr: recognize took " + (Date.now() - recognizeStartedAt) + " ms");
     return result && result.data ? result.data.text : "";
   } catch (err) {
     if (id !== runId) {

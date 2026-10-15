@@ -97,6 +97,27 @@ function redraw() {
     ctx.fillRect(corners[i][0] - 6, corners[i][1] - 6, 12, 12);
     ctx.strokeRect(corners[i][0] - 6, corners[i][1] - 6, 12, 12);
   }
+  placeCopyButton();
+}
+
+var COPY_GAP = 8;
+
+function placeCopyButton() {
+  var button = document.getElementById("copy-text");
+  if (!button || button.hidden || !box || !src) return;
+  var v = viewerBox();
+  if (v.width < 1 || v.height < 1) return;
+  var d = boxDisplay();
+  var bw = button.offsetWidth;
+  var bh = button.offsetHeight;
+  if (!bw || !bh) return;
+  var left = Math.min(d.x + d.w, v.width - bw);
+  var top = d.y + d.h + COPY_GAP;
+  if (top + bh > v.height) {
+    top = d.y - bh - COPY_GAP;
+  }
+  button.style.insetInlineStart = Math.max(0, left) + "px";
+  button.style.insetBlockStart = Math.max(0, top) + "px";
 }
 
 function clampBox() {
@@ -256,4 +277,15 @@ export function initSelection(options) {
       }
     }
   });
+  if (typeof ResizeObserver !== "undefined") {
+    new ResizeObserver(function () {
+      if (box) {
+        refreshSource();
+        if (src) {
+          fitOverlay();
+          redraw();
+        }
+      }
+    }).observe(viewer);
+  }
 }

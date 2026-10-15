@@ -17,6 +17,7 @@ import { initSelection, clearSelection } from "./selection.js";
   var OCR_DEBOUNCE_MS = 500;
   var ocrRequestId = 0;
   var ocrText = "";
+  var tersalinTimer = null;
   var TESSDATA_CACHE = "ekstraksi-teks-tessdata-v1";
   var TESSDATA_URLS = [
     "vendor/tessdata/ara.traineddata",
@@ -132,8 +133,41 @@ import { initSelection, clearSelection } from "./selection.js";
     };
   }
 
+  function setCopyLabel(text) {
+    var els = copyEls();
+    if (!els.button) return;
+    var label = els.button.querySelector("span:not(.spinner)");
+    if (label) label.textContent = text;
+  }
+
+  function setSpinnerVisible(visible) {
+    var els = copyEls();
+    var spinner =
+      els.button ? els.button.querySelector(".spinner") : null;
+    if (spinner) spinner.hidden = !visible;
+  }
+
+  function cancelTersalin() {
+    if (tersalinTimer !== null) {
+      clearTimeout(tersalinTimer);
+      tersalinTimer = null;
+    }
+  }
+
+  function showTersalin() {
+    var els = copyEls();
+    if (!els.button) return;
+    cancelTersalin();
+    setCopyLabel("Tersalin");
+    tersalinTimer = setTimeout(function () {
+      tersalinTimer = null;
+      setCopyLabel("Salin teks");
+    }, 2000);
+  }
+
   function clearStoredText() {
     ocrText = "";
+    cancelTersalin();
     var els = copyEls();
     if (els.button) {
       els.button.hidden = true;
@@ -178,18 +212,30 @@ import { initSelection, clearSelection } from "./selection.js";
       navigator.clipboard.writeText
     ) {
       navigator.clipboard.writeText(ocrText).then(
-        function () {},
         function () {
-          if (!legacyCopy(ocrText)) showManualCopy(ocrText);
+          showTersalin();
+        },
+        function () {
+          if (legacyCopy(ocrText)) {
+            showTersalin();
+          } else {
+            showManualCopy(ocrText);
+          }
         }
       );
       return;
     }
-    if (!legacyCopy(ocrText)) showManualCopy(ocrText);
+    if (legacyCopy(ocrText)) {
+      showTersalin();
+    } else {
+      showManualCopy(ocrText);
+    }
   }
 
   function startOcrRun(cropCanvas, onProgress, onError) {
     var id = ++ocrRequestId;
+    cancelTersalin();
+    setCopyLabel("Memproses teks…");
     var els = copyEls();
     if (els.button && !els.button.hidden) {
       els.button.disabled = true;
@@ -218,7 +264,10 @@ import { initSelection, clearSelection } from "./selection.js";
         if (ui.button) {
           ui.button.hidden = false;
           ui.button.disabled = false;
+          ui.button.removeAttribute("aria-disabled");
+          setCopyLabel("Salin teks");
         }
+        setSpinnerVisible(false);
       } else {
         clearStoredText();
       }
@@ -374,6 +423,7 @@ import { initSelection, clearSelection } from "./selection.js";
     clearSelection();
     clearStoredText();
     name.textContent = file.name;
+    name.title = file.name;
     if (isImageFile(file)) {
       showImage(file, preview, canvas);
     } else if (isPdfFile(file)) {
@@ -383,6 +433,23 @@ import { initSelection, clearSelection } from "./selection.js";
     }
     info.hidden = false;
     empty.hidden = true;
+  }
+
+  function ocrProgressLabel(status, progress) {
+    if (
+      typeof status === "string" &&
+      status.indexOf("recognizing") !== -1 &&
+      typeof progress === "number"
+    ) {
+      var pct = Math.min(100, Math.max(0, Math.round(progress * 100)));
+      setCopyLabel("Memproses teks… " + pct + "%");
+    } else {
+      setCopyLabel("Menyiapkan OCR…");
+    }
+  }
+
+  function hideSpinnerOnError() {
+    setSpinnerVisible(false);
   }
 
   function init() {
@@ -396,7 +463,15 @@ import { initSelection, clearSelection } from "./selection.js";
     initSelection({
       getSource: currentSource,
       onStableBox: function (cropCanvas) {
-        requestOcr(cropCanvas);
+        var els = copyEls();
+        if (els.button) {
+          els.button.hidden = false;
+          els.button.disabled = true;
+          els.button.setAttribute("aria-disabled", "true");
+          setCopyLabel("Memproses teks…");
+        }
+        setSpinnerVisible(true);
+        requestOcr(cropCanvas, ocrProgressLabel, hideSpinnerOnError);
       },
     });
     var clearBtn = document.getElementById("clear-box");
@@ -407,6 +482,12 @@ import { initSelection, clearSelection } from "./selection.js";
     }
     var copyBtn = document.getElementById("copy-text");
     if (copyBtn) {
+      copyBtn.addEventListener("pointerdown", function (event) {
+        event.stopPropagation();
+      });
+      copyBtn.addEventListener("pointerup", function (event) {
+        event.stopPropagation();
+      });
       copyBtn.addEventListener("click", function () {
         copyStoredText();
       });

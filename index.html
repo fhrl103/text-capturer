@@ -11,20 +11,44 @@
 <body>
   <main>
     <h1 dir="auto">Ekstraksi Teks</h1>
+    <ol id="steps" dir="auto">
+      <li class="current" aria-current="step"><span class="step-num" aria-hidden="true">1</span><span>Pilih berkas</span></li>
+      <li><span class="step-num" aria-hidden="true">2</span><span>Gambar area</span></li>
+      <li><span class="step-num" aria-hidden="true">3</span><span>Salin teks</span></li>
+    </ol>
     <section id="empty-state" dir="auto">
       <p id="empty-message">Belum ada berkas. Pilih berkas PDF atau gambar dari perangkat.</p>
-      <label for="file-input">Pilih berkas</label>
+      <label for="file-input" class="btn-accent"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3"/><path d="M7 8l5-5 5 5"/><path d="M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg><span>Pilih berkas</span></label>
       <input type="file" id="file-input" accept="application/pdf,image/*">
     </section>
     <section id="file-info" hidden>
-      <p dir="auto">Berkas terpilih: <span id="file-name" dir="auto"></span></p>
-      <div id="viewer">
-        <img id="preview" alt="" hidden>
-        <canvas id="pdf-canvas" hidden></canvas>
-        <canvas id="select-overlay"></canvas>
+      <div id="toolbar" dir="auto">
+        <label for="file-input" class="btn-secondary"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3"/><path d="M7 8l5-5 5 5"/><path d="M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg><span>Pilih berkas</span></label>
+        <span id="file-name" dir="auto"></span>
+        <button type="button" id="clear-box"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg><span>Hapus area</span></button>
       </div>
-      <button type="button" id="clear-box">Hapus area</button>
-      <button type="button" id="copy-text" hidden disabled>Salin teks</button>
+      <section id="viewer-card" dir="auto">
+        <nav id="pdf-nav" hidden dir="auto" aria-label="Navigasi halaman">
+          <button type="button" id="prev-page"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 6l-6 6 6 6"/></svg><span>Sebelumnya</span></button>
+          <span id="page-indicator" dir="auto"></span>
+          <button type="button" id="next-page"><span>Berikutnya</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 6l6 6-6 6"/></svg></button>
+          <div id="jump-details">
+            <span>Ke halaman</span>
+            <form id="jump-form">
+              <label for="jump-input" class="sr-only">Ke halaman</label>
+              <input type="number" id="jump-input" min="1" inputmode="numeric">
+              <button type="submit" id="jump-go"><span>Buka</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16"/><path d="M14 6l6 6-6 6"/></svg></button>
+            </form>
+          </div>
+        </nav>
+        <div id="viewer">
+          <img id="preview" alt="" hidden>
+          <canvas id="pdf-canvas" hidden></canvas>
+          <canvas id="select-overlay"></canvas>
+          <button type="button" id="copy-text" hidden disabled><span class="spinner" aria-hidden="true" hidden></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span>Salin teks</span></button>
+        </div>
+      </section>
+      <p id="viewer-help" dir="auto">Seret di atas halaman untuk memilih teks. Hasil muncul otomatis setelah area dipilih.</p>
       <p id="manual-copy" hidden dir="auto"></p>
       <p id="error-state" hidden dir="auto" role="alert"></p>
       <section id="consent-prompt" hidden dir="auto">
@@ -32,17 +56,6 @@
         <button type="button" id="consent-download">Unduh</button>
         <button type="button" id="consent-cancel">Batal</button>
       </section>
-      <nav id="pdf-nav" hidden dir="auto" aria-label="Navigasi halaman">
-        <button type="button" id="prev-page">Sebelumnya</button>
-        <span id="page-indicator" dir="auto"></span>
-        <button type="button" id="next-page">Berikutnya</button>
-        <form id="jump-form">
-          <label for="jump-input">Ke halaman</label>
-          <input type="number" id="jump-input" min="1" inputmode="numeric">
-          <button type="submit" id="jump-go">Buka</button>
-        </form>
-      </nav>
-      <label for="file-input">Pilih berkas lain</label>
     </section>
   </main>
   <script src="js/fileLoader.js" defer></script>

@@ -13,3 +13,4 @@
   - Note: steps 3b and 3c are verified only from a non-secure origin. `localhost` and `127.0.0.1` are secure, so the fallback cannot be tested there.
   - Note: stored OCR text is cleared on page navigation, same as the box, because it belongs to the old bitmap.
   - Note: fallback steps 3b and 3c are not yet verified from a non-secure origin. Verify from a device over HTTP before closing the phase.
+  - Note: copy button is a popup anchored to the selection box (per confirmed popup decision): shown disabled as "Memproses teks…" at pointer-up, enabled as "Salin teks" on success, hidden on failure or clear.

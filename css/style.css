@@ -1,5 +1,30 @@
 :root {
   color-scheme: light dark;
+  --bg: #f4f4f5;
+  --surface-1: #ffffff;
+  --surface-3: #e4e4e7;
+  --text: #18181b;
+  --text-primary: #18181b;
+  --border: #d4d4d8;
+  --border-strong: #a1a1aa;
+  --radius: 0.5rem;
+  --accent: #0f766e;
+  --accent-text: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #18181b;
+    --surface-1: #27272a;
+    --surface-3: #3f3f46;
+    --text: #f4f4f5;
+    --text-primary: #f4f4f5;
+    --border: #52525b;
+    --border-strong: #71717a;
+    --radius: 0.5rem;
+    --accent: #2dd4bf;
+    --accent-text: #042f2e;
+  }
 }
 
 * {
@@ -8,8 +33,11 @@
 
 body {
   margin: 0;
+  background-color: var(--bg);
+  color: var(--text);
   font-family: system-ui, sans-serif;
-  line-height: 1.5;
+  font-size: 1rem;
+  line-height: 1.7;
 }
 
 main {
@@ -21,47 +49,157 @@ main {
 
 h1 {
   text-align: start;
-  font-size: 1.5rem;
+  font-size: 1.125rem;
+  font-weight: 500;
   margin-block: 0 1rem;
 }
 
-#empty-state,
-#file-info {
-  border: 1px solid currentColor;
-  border-radius: 0.5rem;
+#steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  margin-block: 0 1rem;
+  padding-inline: 0;
+}
+
+#steps li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-block-size: 2.75rem;
+  border: 0.5px solid var(--border);
+  border-radius: 999px;
+  padding-inline: 0.9rem;
+  padding-block: 0.25rem;
+}
+
+#steps li.current {
+  font-weight: 500;
+  background-color: var(--surface-1);
+  border-color: var(--accent);
+}
+
+.step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 1.5rem;
+  min-block-size: 1.5rem;
+  border-radius: 999px;
+  background-color: var(--accent);
+  color: var(--accent-text);
+  font-size: 0.875rem;
+}
+
+#empty-state {
+  background-color: var(--surface-1);
+  border: 0.5px solid var(--border);
+  border-radius: 0.75rem;
   padding-inline: 1rem;
-  padding-block: 1.5rem;
-  text-align: start;
+  padding-block: 2rem;
+  text-align: center;
+}
+
+#empty-message {
+  margin-block: 0 1rem;
 }
 
 label[for="file-input"] {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  min-inline-size: 2.75rem;
   min-block-size: 2.75rem;
-  border: 1px solid currentColor;
   border-radius: 0.5rem;
   padding-inline: 1rem;
   padding-block: 0.5rem;
   cursor: pointer;
-  margin-block-start: 0.5rem;
+}
+
+.btn-accent {
+  background-color: var(--accent);
+  color: var(--accent-text);
+  border: 0.5px solid var(--accent);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: inherit;
+  border: 0.5px solid var(--border);
+}
+
+.sr-only {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+button svg,
+label[for="file-input"] svg {
+  inline-size: 18px;
+  block-size: 18px;
+  flex: none;
+}
+
+label[for="file-input"] {
+  gap: 0.5rem;
+}
+
+#file-info > label[for="file-input"] {
+  margin-block-start: 1rem;
 }
 
 #file-input {
-  display: block;
-  max-inline-size: 100%;
-  margin-block-start: 0.5rem;
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+#toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-block-end: 1rem;
 }
 
 #file-name {
-  font-weight: 600;
-  overflow-wrap: anywhere;
+  flex: 1 1 8rem;
+  min-inline-size: 0;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: end;
+}
+
+#viewer-card {
+  background-color: var(--surface-1);
+  border: 0.5px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+}
+
+#viewer-help {
+  margin-block: 1rem 0;
 }
 
 #preview {
   display: block;
   max-inline-size: 100%;
   block-size: auto;
-  margin-block-start: 1rem;
   touch-action: none;
 }
 
@@ -73,7 +211,6 @@ label[for="file-input"] {
   display: block;
   inline-size: 100%;
   block-size: auto;
-  margin-block-start: 1rem;
   touch-action: none;
 }
 
@@ -82,11 +219,12 @@ label[for="file-input"] {
 }
 
 #error-state {
-  border: 1px solid currentColor;
+  border: 0.5px solid var(--border);
   border-radius: 0.5rem;
+  background-color: var(--surface-1);
   padding-inline: 1rem;
   padding-block: 0.75rem;
-  margin-block-start: 1rem;
+  margin-block: 1rem 0;
   overflow-wrap: anywhere;
 }
 
@@ -95,11 +233,12 @@ label[for="file-input"] {
 }
 
 #consent-prompt {
-  border: 1px solid currentColor;
+  border: 0.5px solid var(--border);
   border-radius: 0.5rem;
+  background-color: var(--surface-1);
   padding-inline: 1rem;
   padding-block: 0.75rem;
-  margin-block-start: 1rem;
+  margin-block: 1rem 0;
 }
 
 #consent-prompt[hidden] {
@@ -133,7 +272,6 @@ label[for="file-input"] {
   padding-inline: 1rem;
   padding-block: 0.5rem;
   cursor: pointer;
-  margin-block-start: 0.5rem;
 }
 
 #copy-text {
@@ -144,11 +282,14 @@ label[for="file-input"] {
   cursor: pointer;
   margin-block-start: 0.5rem;
   margin-inline-start: 0.5rem;
+  background-color: var(--surface-3);
+  color: var(--text-primary);
+  border: 0.5px solid var(--border-strong);
+  border-radius: var(--radius);
 }
 
 #copy-text:disabled {
-  cursor: default;
-  opacity: 0.5;
+  cursor: progress;
 }
 
 #copy-text[hidden],
@@ -157,11 +298,12 @@ label[for="file-input"] {
 }
 
 #manual-copy {
-  border: 1px dashed currentColor;
+  border: 0.5px dashed var(--border);
   border-radius: 0.5rem;
+  background-color: var(--surface-1);
   padding-inline: 1rem;
   padding-block: 0.75rem;
-  margin-block-start: 1rem;
+  margin-block: 1rem 0;
   overflow-wrap: anywhere;
 }
 
@@ -170,21 +312,41 @@ label[for="file-input"] {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
-  margin-block-start: 1rem;
+  margin-block-end: 0.75rem;
 }
 
 #pdf-nav[hidden] {
   display: none;
 }
 
+label[for="file-input"].btn-accent,
+label[for="file-input"].btn-secondary,
 #prev-page,
 #next-page,
-#jump-go {
+#jump-go,
+#clear-box,
+#copy-text,
+#consent-download,
+#consent-cancel {
+  font-family: system-ui, sans-serif;
+  font-size: 1rem;
+}
+
+#prev-page,
+#next-page,
+#jump-go,
+#clear-box,
+#consent-download,
+#consent-cancel {
   min-inline-size: 2.75rem;
   min-block-size: 2.75rem;
   padding-inline: 1rem;
   padding-block: 0.5rem;
   cursor: pointer;
+  background-color: transparent;
+  color: inherit;
+  border: 0.5px solid var(--border);
+  border-radius: 0.5rem;
 }
 
 #prev-page:disabled,
@@ -198,11 +360,60 @@ label[for="file-input"] {
   text-align: center;
 }
 
-#jump-form {
+#viewer #copy-text {
+  position: absolute;
+  z-index: 1;
+  margin-block-start: 0;
+  margin-inline-start: 0;
+  white-space: nowrap;
+}
+
+#copy-text .spinner {
+  inline-size: 16px;
+  block-size: 16px;
+  flex: none;
+  border: 2px solid var(--border-strong);
+  border-block-start-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+#copy-text .spinner[hidden] {
+  display: none;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #copy-text .spinner {
+    animation: none;
+  }
+}
+
+#jump-details {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
-  margin-inline-start: auto;
+  flex-basis: 100%;
+}
+
+#jump-details > span {
+  min-block-size: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+}
+
+#jump-form {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-block-start: 0;
 }
 
 #jump-input {
@@ -213,8 +424,20 @@ label[for="file-input"] {
 }
 
 @media (max-width: 30rem) {
-  #jump-form {
-    margin-inline-start: 0;
-    inline-size: 100%;
+  #file-name {
+    flex-basis: 100%;
+    order: -1;
+    text-align: start;
+  }
+}
+
+@media (min-width: 48rem) {
+  #pdf-nav {
+    flex-wrap: nowrap;
+  }
+
+  #jump-details {
+    flex: 1 1 auto;
+    flex-wrap: nowrap;
   }
 }
