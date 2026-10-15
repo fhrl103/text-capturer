@@ -1,6 +1,6 @@
 "use strict";
 
-var SHELL_CACHE = "ekstraksi-teks-shell-v14";
+var SHELL_CACHE = "ekstraksi-teks-shell-v15";
 var TESSDATA_CACHE = "ekstraksi-teks-tessdata-v1";
 var SHELL_PREFIX = "ekstraksi-teks-shell-";
 var SHELL_PATHS = [
@@ -76,17 +76,18 @@ function cacheFirst(request) {
 }
 
 function tessdataFirst(request) {
-  return fetch(request).then(function (response) {
-    if (response && response.ok) {
-      var copy = response.clone();
-      return caches.open(TESSDATA_CACHE).then(function (cache) {
-        return cache.put(request, copy).then(function () {
-          return response;
-        });
+  return caches.open(TESSDATA_CACHE).then(function (cache) {
+    return cache.match(request).then(function (hit) {
+      if (hit) return hit;
+      return fetch(request).then(function (response) {
+        if (response && response.ok && response.status === 200) {
+          var copy = response.clone();
+          return cache.put(request, copy).then(function () {
+            return response;
+          });
+        }
+        throw new Error("tessdata: network response not cacheable");
       });
-    }
-    return caches.match(request).then(function (hit) {
-      return hit || response;
     });
   });
 }
