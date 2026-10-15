@@ -13,13 +13,42 @@ var progressCb = null;
 var currentRun = null;
 var runId = 0;
 
-function getTesseract() {
+var OCR_UNAVAILABLE =
+  "OCR tidak tersedia: vendor/tesseract/tesseract.min.js tidak dapat dimuat. Periksa koneksi offline, tanpa CDN.";
+var tesseractLoader = null;
+
+// tesseract.min.js is ~63 KB; inject it on first OCR use instead of loading it
+// on every page open. It stays in the service worker precache, so the lazy load
+// still works offline.
+function loadTesseract() {
   if (typeof window !== "undefined" && window.Tesseract) {
-    return window.Tesseract;
+    return Promise.resolve(window.Tesseract);
   }
-  throw new Error(
-    "OCR tidak tersedia: vendor/tesseract/tesseract.min.js tidak dimuat. Periksa koneksi offline, tanpa CDN."
-  );
+  if (tesseractLoader !== null) return tesseractLoader;
+  var loader = new Promise(function (resolve, reject) {
+    if (typeof document === "undefined") {
+      reject(new Error(OCR_UNAVAILABLE));
+      return;
+    }
+    var script = document.createElement("script");
+    script.src = "vendor/tesseract/tesseract.min.js";
+    script.onload = function () {
+      if (window.Tesseract) {
+        resolve(window.Tesseract);
+      } else {
+        reject(new Error(OCR_UNAVAILABLE));
+      }
+    };
+    script.onerror = function () {
+      reject(new Error(OCR_UNAVAILABLE));
+    };
+    document.head.appendChild(script);
+  });
+  tesseractLoader = loader.catch(function (err) {
+    tesseractLoader = null;
+    throw err;
+  });
+  return tesseractLoader;
 }
 
 function downscale(source) {
@@ -61,22 +90,23 @@ function terminateWorker() {
 }
 
 function spawnWorker() {
-  var Tesseract = getTesseract();
-  var oem =
-    Tesseract.OEM && typeof Tesseract.OEM.LSTM_ONLY !== "undefined"
-      ? Tesseract.OEM.LSTM_ONLY
-      : LSTM_ONLY_OEM;
-  var startedAt = Date.now();
-  return Tesseract.createWorker(LANGS, oem, {
-    workerPath: "vendor/tesseract/worker.min.js",
-    corePath: "vendor/tesseract/tesseract-core-lstm.wasm.js",
-    langPath: "vendor/tessdata/",
-    cacheMethod: "none",
-    gzip: false,
-    logger: logProgress,
-  }).then(function (created) {
-    console.info("ocr: worker created in " + (Date.now() - startedAt) + " ms");
-    return created;
+  return loadTesseract().then(function (Tesseract) {
+    var oem =
+      Tesseract.OEM && typeof Tesseract.OEM.LSTM_ONLY !== "undefined"
+        ? Tesseract.OEM.LSTM_ONLY
+        : LSTM_ONLY_OEM;
+    var startedAt = Date.now();
+    return Tesseract.createWorker(LANGS, oem, {
+      workerPath: "vendor/tesseract/worker.min.js",
+      corePath: "vendor/tesseract/tesseract-core-lstm.wasm.js",
+      langPath: "vendor/tessdata/",
+      cacheMethod: "none",
+      gzip: false,
+      logger: logProgress,
+    }).then(function (created) {
+      console.info("ocr: worker created in " + (Date.now() - startedAt) + " ms");
+      return created;
+    });
   });
 }
 

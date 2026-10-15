@@ -1,6 +1,18 @@
-import { getDocument, GlobalWorkerOptions } from "../vendor/pdfjs/pdf.min.mjs";
+var pdfjsModule = null;
+var workerSrcConfigured = false;
 
-GlobalWorkerOptions.workerSrc = "vendor/pdfjs/pdf.worker.min.mjs";
+// pdf.js is ~458 KB; load it on first PDF use instead of on every page load.
+function loadPdfJs() {
+  if (pdfjsModule !== null) return Promise.resolve(pdfjsModule);
+  return import("../vendor/pdfjs/pdf.min.mjs").then(function (mod) {
+    if (!workerSrcConfigured) {
+      mod.GlobalWorkerOptions.workerSrc = "vendor/pdfjs/pdf.worker.min.mjs";
+      workerSrcConfigured = true;
+    }
+    pdfjsModule = mod;
+    return mod;
+  });
+}
 
 var currentPdf = null;
 var currentPage = null;
@@ -46,7 +58,8 @@ export function closeDocument() {
 
 export async function openDocument(data) {
   await closeDocument();
-  var pdf = await getDocument({ data: data }).promise;
+  var mod = await loadPdfJs();
+  var pdf = await mod.getDocument({ data: data }).promise;
   currentPdf = pdf;
   currentPageNum = 0;
   totalPages = pdf.numPages;
