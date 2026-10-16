@@ -1,6 +1,7 @@
 import {
   renderFirstPage,
   renderPage,
+  renderRegion,
   getCurrentPage,
   getTotalPages,
   closeDocument,
@@ -15,6 +16,7 @@ import { initSelection, clearSelection } from "./selection.js";
   var pickedGeneration = 0;
   var ocrTimer = null;
   var OCR_DEBOUNCE_MS = 500;
+  var OCR_MAX_EDGE = 2000;
   var ocrRequestId = 0;
   var ocrText = "";
   var tersalinTimer = null;
@@ -166,6 +168,7 @@ import { initSelection, clearSelection } from "./selection.js";
   }
 
   function clearStoredText() {
+    cancelOcrTimer();
     ocrText = "";
     cancelTersalin();
     var els = copyEls();
@@ -289,15 +292,54 @@ import { initSelection, clearSelection } from "./selection.js";
     showConsent();
   }
 
-  function requestOcr(cropCanvas, onProgress, onError) {
+  function cancelOcrTimer() {
     if (ocrTimer !== null) {
       clearTimeout(ocrTimer);
       ocrTimer = null;
     }
+  }
+
+  function buildCrop(kind, rect, pageNum) {
+    if (kind === "pdf") {
+      return renderRegion(pageNum, rect, OCR_MAX_EDGE);
+    }
+    var preview = document.getElementById("preview");
+    var canvas = document.createElement("canvas");
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    canvas
+      .getContext("2d")
+      .drawImage(
+        preview,
+        rect.x,
+        rect.y,
+        rect.width,
+        rect.height,
+        0,
+        0,
+        rect.width,
+        rect.height
+      );
+    return Promise.resolve(canvas);
+  }
+
+  function requestOcr(kind, rect, pageNum, generation, onProgress, onError) {
+    cancelOcrTimer();
     if (consentOpen) return;
     ocrTimer = setTimeout(function () {
       ocrTimer = null;
-      maybeOcr(cropCanvas, onProgress, onError);
+      if (generation !== pickedGeneration) return;
+      buildCrop(kind, rect, pageNum).then(
+        function (cropCanvas) {
+          if (generation !== pickedGeneration) return;
+          maybeOcr(cropCanvas, onProgress, onError);
+        },
+        function (err) {
+          if (generation !== pickedGeneration) return;
+          if (err && err.name === "RenderingCancelledException") return;
+          if (typeof onError === "function") onError(err);
+        }
+      );
     }, OCR_DEBOUNCE_MS);
   }
 
@@ -424,6 +466,10 @@ import { initSelection, clearSelection } from "./selection.js";
     clearStoredText();
     name.textContent = file.name;
     name.title = file.name;
+    // Show the viewer before rendering so a PDF can measure its on-screen width
+    // for the adaptive render scale.
+    info.hidden = false;
+    empty.hidden = true;
     if (isImageFile(file)) {
       showImage(file, preview, canvas);
     } else if (isPdfFile(file)) {
@@ -431,8 +477,6 @@ import { initSelection, clearSelection } from "./selection.js";
     } else {
       showError(file.name, REASON_UNSUPPORTED);
     }
-    info.hidden = false;
-    empty.hidden = true;
   }
 
   function ocrProgressLabel(status, progress) {
@@ -462,7 +506,9 @@ import { initSelection, clearSelection } from "./selection.js";
     window.fileLoader.onFilePicked(showFile);
     initSelection({
       getSource: currentSource,
-      onStableBox: function (cropCanvas) {
+      onStableBox: function (rect) {
+        var source = currentSource();
+        if (!source) return;
         var els = copyEls();
         if (els.button) {
           els.button.hidden = false;
@@ -471,7 +517,14 @@ import { initSelection, clearSelection } from "./selection.js";
           setCopyLabel("Memproses teks…");
         }
         setSpinnerVisible(true);
-        requestOcr(cropCanvas, ocrProgressLabel, hideSpinnerOnError);
+        requestOcr(
+          source.kind,
+          rect,
+          source.kind === "pdf" ? getCurrentPage() : 0,
+          pickedGeneration,
+          ocrProgressLabel,
+          hideSpinnerOnError
+        );
       },
     });
     var clearBtn = document.getElementById("clear-box");
@@ -514,7 +567,7 @@ import { initSelection, clearSelection } from "./selection.js";
           function () {
             downloadController = null;
             hideConsent();
-            requestOcr(pending.crop, pending.onProgress, pending.onError);
+            maybeOcr(pending.crop, pending.onProgress, pending.onError);
           },
           function () {
             downloadController = null;

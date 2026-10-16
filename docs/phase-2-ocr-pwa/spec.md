@@ -27,7 +27,8 @@ The user draws a selection box on the rendered page with mouse or touch drag and
 ## Implementation Decisions
 
 - Selection: pointer-drag box drawn over the rendered canvas (mouse + touch via Pointer Events), with move/resize adjust handles. Touch targets for handles follow the 44px rule.
-- OCR input: box crop downscaled so its long edge is at most 2000px before recognition.
+- OCR input: box crop downscaled so its long edge is at most 2000px before recognition. For PDFs the crop is re-rendered from the page at high resolution (long edge target 2000px, scale capped at 4) instead of being sampled from the display canvas, so recognition resolution is never reduced by the display scale.
+- PDF display: pages render at a scale matching the canvas' on-screen size (container width × device pixel ratio, dpr capped at 2) bounded by a maximum long edge, instead of a fixed `scale: 2`. This cuts canvas memory and render time on phones; the OCR crop above re-renders the region so recognition quality is preserved.
 - Auto-run: 500ms debounce measured from the last box change. When the debounce fires, reuse an idle worker for the current box instead of recreating it; terminate the worker only to cancel an in-flight run, when the language set changes, or after a recognition error, and recycle it after 20 completed runs. Rationale: tesseract.js 7.0.0 `recognize()` returns a plain promise with no per-job cancel (verified in `src/createWorker.js`; the graceful in-worker terminate is commented out, `terminate()` kills the worker), so `terminate()` stays the cancellation mechanism — but recreating the worker on every run needlessly reloads the core and `ara+eng` language data. No job queue; at most one recognition runs at a time.
 - Instrumentation: log worker creation time and reuse so restart and reuse costs can be measured on device.
 - Languages: `ara+eng` from vendored `tessdata_best` files.

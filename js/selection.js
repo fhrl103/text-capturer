@@ -160,16 +160,12 @@ function insideBox(p) {
   );
 }
 
-function cropBox() {
+function cropRect() {
   var x = Math.min(Math.max(Math.round(box.x), 0), src.width - 1);
   var y = Math.min(Math.max(Math.round(box.y), 0), src.height - 1);
   var w = Math.max(1, Math.min(Math.round(box.w), src.width - x));
   var h = Math.max(1, Math.min(Math.round(box.h), src.height - y));
-  var canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
-  canvas.getContext("2d").drawImage(src.el, x, y, w, h, 0, 0, w, h);
-  return canvas;
+  return { x: x, y: y, width: w, height: h };
 }
 
 function updateBox(clientX, clientY, g) {
@@ -275,7 +271,7 @@ function onPointerUp() {
     return;
   }
   if (typeof onStableBox === "function" && src) {
-    onStableBox(cropBox());
+    onStableBox(cropRect());
   }
 }
 
